@@ -13,9 +13,9 @@ export interface Player {
   pan: number;
   playing: boolean;
 
-  volume: number | undefined;
-  format: Format | undefined;
-  metadata: Metadata | undefined;
+  volume?: number;
+  format?: Format;
+  metadata?: Metadata;
 
   destroy: () => void;
   pause: () => void;
