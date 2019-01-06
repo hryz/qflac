@@ -1,14 +1,12 @@
-import { strict } from "assert";
+import { LoginResponse, LogoutResponse, GetTreeResponseItem, GetListResponse } from "./models";
+import '../shared/extensions'
 
 export class ApiClient {
   private sid: string;
   private baseUrl: string;
 
   constructor(baseUrl: string) {
-    // "http://192.168.88.253:8080/cgi-bin/filemanager";
-    // "http://hryz.myqnapcloud.com:8080/cgi-bin/filemanager";
-
-    this.baseUrl = baseUrl + '/cgi-bin/filemanager';
+    this.baseUrl = baseUrl + "/cgi-bin/filemanager";
     this.sid = "";
   }
 
@@ -22,8 +20,13 @@ export class ApiClient {
       throw Error(response.statusText);
     }
 
-    const body = await response.json();
-    this.sid = body.sid;
+    const body = await response.json().cast<LoginResponse>();
+    if(body.status === 0){
+     return false;
+    }
+
+    this.sid = body.sid || '';
+    return true;
   }
 
   async logout() {
@@ -36,19 +39,19 @@ export class ApiClient {
       throw Error(response.statusText);
     }
 
-    const body = await response.json();
-    return body.success;
+    const body = await response.json().cast<LogoutResponse>();
+    return body.success === 'true';
   }
 
-  async getList(path: string) {
+  async getList(path: string, start = 0, limit = 100) {
     const resp = await fetch(
       `${this.baseUrl}/utilRequest.cgi?func=get_list&sid=${this.sid}`,
       {
         body: this.toBody({
-          start: 0,
-          limit: 100,
-          sort: "mt",
-          dir: "DESC",
+          start,
+          limit,
+          sort: "filename",
+          dir: "ASC",
           list_mode: "all",
           noSupportACL: true,
           path,
@@ -62,7 +65,7 @@ export class ApiClient {
         method: "POST"
       }
     );
-    const body = await resp.json();
+    const body = await resp.json().cast<GetListResponse>();
     return body;
   }
 
@@ -80,7 +83,7 @@ export class ApiClient {
         method: "POST"
       }
     );
-    const body = await resp.json();
+    const body = await resp.json().cast<GetTreeResponseItem[]>();
     return body;
   }
 

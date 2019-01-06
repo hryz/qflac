@@ -17,14 +17,14 @@ export interface Player {
   format?: Format;
   metadata?: Metadata;
 
-  destroy: () => void;
-  pause: () => void;
-  play: () => void;
-  preload: () => void;
-  seek: (timestamp: number) => void;
-  startPlaying: () => void;
-  stop: () => void;
-  togglePlayback: () => void;
+  destroy(): void;
+  pause(): void;
+  play(): void;
+  preload(): void;
+  seek(timestamp: number): void;
+  startPlaying(): void;
+  stop(): void;
+  togglePlayback(): void;
 }
 
 export interface Format {
