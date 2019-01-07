@@ -1,9 +1,9 @@
-import { LoginResponse, LogoutResponse, GetTreeResponseItem, GetListResponse } from "./models";
+import {LoginResponse, LogoutResponse, GetTreeResponseItem, GetListResponse, LoginError, ErrorResponse} from "./models";
 import '../shared/extensions'
 
 export class ApiClient {
   private sid: string;
-  private baseUrl: string;
+  private readonly baseUrl: string;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl + "/cgi-bin/filemanager";
@@ -12,7 +12,7 @@ export class ApiClient {
 
   async login(userName: string, password: string) {
     const response = await fetch(`${this.baseUrl}/wfm2Login.cgi`, {
-      body: this.toBody({ user: userName, pwd: btoa(password) }),
+      body: this.toBody({user: userName, pwd: btoa(password)}),
       method: "POST"
     });
 
@@ -20,9 +20,9 @@ export class ApiClient {
       throw Error(response.statusText);
     }
 
-    const body = await response.json().cast<LoginResponse>();
-    if(body.status === 0){
-     return false;
+    const body = await response.json().cast<LoginResponse | LoginError>();
+    if (body.status === 0) {
+      return false;
     }
 
     this.sid = body.sid || '';
@@ -65,8 +65,12 @@ export class ApiClient {
         method: "POST"
       }
     );
-    const body = await resp.json().cast<GetListResponse>();
+    const body = await resp.json().cast<GetListResponse | ErrorResponse>();
+    if (body.status !== undefined) {
+      throw Error(`Can not get list of ${path}`);
+    }
     return body;
+    // TODO: add support for pagination
   }
 
   async getTree(path: string) {
@@ -83,8 +87,11 @@ export class ApiClient {
         method: "POST"
       }
     );
-    const body = await resp.json().cast<GetTreeResponseItem[]>();
-    return body;
+    const body = await resp.json().cast<GetTreeResponseItem[] | ErrorResponse>();
+    if (body instanceof Array) {
+      return body;
+    }
+    throw Error(`Can not get tree of ${path}`);
   }
 
   async download(path: string) {

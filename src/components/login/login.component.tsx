@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ApiClient } from "../../shared/api";
+import {ApiClient} from "../../shared/api";
 import './login.css'
 
 interface Props {
@@ -16,7 +16,7 @@ interface State {
 export class Login extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { message: "", userName: "", password: "" };
+    this.state = {message: "", userName: "", password: ""};
   }
 
   setUserName = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,7 +41,7 @@ export class Login extends React.Component<Props, State> {
     );
     this.props.login(result);
     const message = result ? "" : "Login failed";
-    this.setState({ ...this.state, message });
+    this.setState({...this.state, message});
   };
 
   public render() {
@@ -50,11 +50,11 @@ export class Login extends React.Component<Props, State> {
         <div>
           <div>
             <label htmlFor="login">Login</label>
-            <input type="text" id="login" onChange={this.setUserName} />
+            <input type="text" id="login" onChange={this.setUserName}/>
           </div>
           <div>
             <label htmlFor="pwd">Password</label>
-            <input type="password" id="pwd" onChange={this.setPassword} />
+            <input type="password" id="pwd" onChange={this.setPassword}/>
           </div>
           <button type="submit">Log in</button>
         </div>

@@ -1,11 +1,13 @@
 import * as React from "react";
-import { ApiClient } from "../../shared/api";
+import {ApiClient} from "../../shared/api";
 import "./list.css";
-import { GetListData } from "../../shared/models";
+import {GetListData} from "../../shared/models";
 import "../../shared/extensions";
+import {PreviewItem} from "../preview/preview.component";
 
 interface Props {
   api: ApiClient;
+  sendToPreview: (path: PreviewItem[]) => void;
 }
 
 interface State {
@@ -23,17 +25,30 @@ export class List extends React.Component<Props, State> {
     };
   }
 
-  handleClick = async (e: React.MouseEvent<HTMLElement>) => {
-    const item = this.state.items.firstOrDefault(
-      x => x.filename === e.currentTarget.innerText
-    );
-
+  isValid = (e: string) => {
+    const item = this.state.items.firstOrDefault(x => x.filename === e);
     if (!item || !item.isfolder) {
+      return false;
+    }
+    return true;
+  };
+
+  handleClick = async (e: string) => {
+
+    if (!this.isValid(e)) {
       return;
     }
-
-    const newPath = [...this.state.currentPath, e.currentTarget.innerText];
+    const newPath = [...this.state.currentPath, e];
     await this.loadList(newPath);
+  };
+
+  loadPreview = async (e: string) => {
+    if (!this.isValid(e)) {
+      return;
+    }
+    const path = [...this.state.currentPath, e];
+    const files = await this.deepLoad(path.join('/'));
+    this.props.sendToPreview(files);
   };
 
   up = async () => {
@@ -55,13 +70,24 @@ export class List extends React.Component<Props, State> {
     });
   };
 
+  deepLoad = async (path: string): Promise<PreviewItem []> => {
+    const result: PreviewItem[] = [];
+    const list = await this.props.api.getList(path);
+    for (const x of list.datas || []) {
+      if (!x.isfolder) {
+        if (x.filename.includes('.flac')) {
+          result.push({folder: path, fileName: x.filename});
+        }
+      } else {
+        const children = await this.deepLoad(`${path}/${x.filename}`);
+        children.forEach(c => result.push(c));
+      }
+    }
+    return result;
+  };
+
   public render() {
-    const list = this.state.items.map(x => (
-      <div key={x.filename} className="listItem">
-        <span className="icon">{x.isfolder ? "📁" : "📄"}</span>
-        <span onClick={this.handleClick}>{x.filename}</span>
-      </div>
-    ));
+    const list = this.state.items.map(x => this.item(x));
     return (
       <div className="listPanel">
         <div className="path">
@@ -73,4 +99,16 @@ export class List extends React.Component<Props, State> {
       </div>
     );
   }
+
+
+  item(x: GetListData) {
+    return (
+      <div key={x.filename} className="listItem">
+        <span className="icon">{x.isfolder ? "📁" : "📄"}</span>
+        <span className="play" onClick={(_) => this.loadPreview(x.filename)}/>
+        <span onClick={(_) => this.handleClick(x.filename)}>{x.filename}</span>
+      </div>
+    )
+  }
+
 }

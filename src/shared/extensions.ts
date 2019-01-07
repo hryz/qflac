@@ -9,7 +9,12 @@ declare global {
     contains(elem: T): boolean;
     orderBy<TElem>(mapper: (elem: T) => TElem): T[];
     orderByDesc<TElem>(mapper: (elem: T) => TElem): T[];
-    groupBy<TElem>(mapper: (elem: T) => TElem): Map<TElem, T[]>;
+    groupBy<TKey>(mapper: (elem: T) => TKey) : Array<Grouping<TKey, T>>;
+  }
+
+  interface Grouping<TKey, TValue> {
+    key : TKey;
+    values: TValue[];
   }
 }
 
@@ -30,7 +35,7 @@ Array.prototype.firstOrDefault =
         return i;
       }
     }
-    return undefined;
+    return null;
   };
 
 Array.prototype.any =
@@ -73,14 +78,14 @@ Array.prototype.orderByDesc =
 
 Array.prototype.groupBy =
   Array.prototype.groupBy ||
-  function<T, TElem>(this: T[], mapper: (elem: T) => TElem) {
-    const result: Map<TElem, T[]> = new Map();
-    function addOrCreate(key: TElem, value: T) {
-      const item = result.get(key);
+  function<T, TKey>(this: T[], mapper: (elem: T) => TKey): Array<Grouping<TKey, T>> {
+    const result: Array<Grouping<TKey, T>> = [];
+    function addOrCreate(key: TKey, value: T) {
+      const item = result.firstOrDefault(x => x.key === key);
       if (item) {
-        item.push(value);
+        item.values.push(value);
       } else {
-        result.set(key, [value]);
+        result.push({key, values: [value]});
       }
     }
     this.forEach(i => addOrCreate(mapper(i), i));

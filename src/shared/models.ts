@@ -1,10 +1,14 @@
 export interface LoginResponse {
-  status: 1 | 0;
-  sid?: string;
-  servername?: string;
-  username?: string;
-  authSid?: string;
-  cuid?: string;
+  status: 1 ;
+  sid: string;
+  servername: string;
+  username: string;
+  authSid: string;
+  cuid: string;
+}
+
+export interface LoginError {
+  status: 0;
 }
 
 export interface LogoutResponse {
@@ -15,6 +19,7 @@ export interface LogoutResponse {
 }
 
 export interface GetListResponse {
+  status: undefined;
   total: number;
   real_total: number;
   datas: GetListData[];
@@ -33,4 +38,9 @@ export interface GetTreeResponseItem {
   text: string;
   max_item_limit: number;
   real_total: number;
+  status: undefined;
+}
+
+export interface ErrorResponse {
+  status: number;
 }
