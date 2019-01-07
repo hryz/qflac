@@ -1,0 +1,8 @@
+.preview {
+    width: 69%;
+    height: 89%;    
+    border: 1px solid black;
+    position: absolute;
+    left: 30%;
+    top: 10%;
+}

@@ -1,0 +1,13 @@
+.LoginForm{    
+    top: 30%;
+    left: 30%;
+    width: 270px;
+    position: absolute;
+
+    background-color: #eee;
+    padding: 5px;
+}
+
+.LoginForm input,button{    
+    float: right;
+}

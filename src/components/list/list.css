@@ -1,4 +1,28 @@
-.selected{
-    background-color: #333388;
-    color: white;
+.listPanel {
+  width: 29%;
+  height: 98%;
+  overflow: scroll;
+  position: absolute;
+  padding: 5px;
+}
+
+.listItem {
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.icon{
+    margin-inline-end: 5px;
+}
+
+.path button {
+  float: left;
+  width: 40px;
+}
+
+.path div {  
+  white-space: nowrap;
+  border-bottom: 1px solid black;
+  margin-left: 45px;
 }

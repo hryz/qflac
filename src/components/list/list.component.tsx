@@ -57,15 +57,18 @@ export class List extends React.Component<Props, State> {
 
   public render() {
     const list = this.state.items.map(x => (
-      <div key={x.filename}>
-        <span>[{x.isfolder ? "+" : "-"}]</span>
+      <div key={x.filename} className="listItem">
+        <span className="icon">{x.isfolder ? "📁" : "📄"}</span>
         <span onClick={this.handleClick}>{x.filename}</span>
       </div>
     ));
     return (
-      <div>
-        <span>{'/' + this.state.currentPath.join('/')}</span>
-        <button onClick={this.up}>Up</button>
+      <div className="listPanel">
+        <div className="path">
+          <button onClick={this.up}>Up</button>
+          <div>{this.state.currentPath.join("/")}</div>
+        </div>
+
         <div>{list}</div>
       </div>
     );

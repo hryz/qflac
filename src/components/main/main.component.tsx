@@ -12,9 +12,9 @@ export class Main extends React.Component<Props> {
   public render() {
     return (
       <div>
-        <List api={this.props.api}/>
-        <Preview />
+        <List api={this.props.api}/>        
         <Player />
+        <Preview />
       </div>
     );
   }

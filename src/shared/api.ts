@@ -115,10 +115,10 @@ export class ApiClient {
     const map = [];
     for (const k in params) {
       if (params.hasOwnProperty(k)) {
-        map.push(`${k}=${params[k]}`);
+        map.push(`${k}=${encodeURIComponent(params[k])}`);
       }
     }
-    return encodeURI(map.join("&"));
+    return (map.join("&"));
   }
 }
 
