@@ -73,16 +73,18 @@ export class List extends React.Component<Props, State> {
   deepLoad = async (path: string): Promise<PreviewItem []> => {
     const result: PreviewItem[] = [];
     const list = await this.props.api.getList(path);
-    for (const x of list.datas || []) {
-      if (!x.isfolder) {
-        if (x.filename.includes('.flac')) {
-          result.push({folder: path, fileName: x.filename});
-        }
-      } else {
-        const children = await this.deepLoad(`${path}/${x.filename}`);
-        children.forEach(c => result.push(c));
-      }
-    }
+
+    list.datas
+      .filter(x => !x.isfolder && x.filename.includes('.flac'))
+      .forEach(x => result.push({folder: path, fileName: x.filename}));
+
+    const childPromises = list.datas
+      .filter(x => x.isfolder && x.filename !== 'Covers')
+      .map(x => this.deepLoad(`${path}/${x.filename}`));
+
+    const children = await Promise.all(childPromises);
+    children.forEach(c => c.forEach(x => result.push(x)));
+    
     return result;
   };
 
@@ -102,13 +104,15 @@ export class List extends React.Component<Props, State> {
 
 
   item(x: GetListData) {
+    const loadPreviewEv = (_: React.MouseEvent<HTMLElement> ) => this.loadPreview(x.filename);
+    const handleClickEv = (_: React.MouseEvent<HTMLElement> ) => this.handleClick(x.filename);
+
     return (
       <div key={x.filename} className="listItem">
         <span className="icon">{x.isfolder ? "📁" : "📄"}</span>
-        <span className="play" onClick={(_) => this.loadPreview(x.filename)}/>
-        <span onClick={(_) => this.handleClick(x.filename)}>{x.filename}</span>
+        <span className="play" onClick={loadPreviewEv}/>
+        <span onClick={handleClickEv}>{x.filename}</span>
       </div>
     )
   }
-
 }

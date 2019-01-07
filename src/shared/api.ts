@@ -2,8 +2,20 @@ import {LoginResponse, LogoutResponse, GetTreeResponseItem, GetListResponse, Log
 import '../shared/extensions'
 
 export class ApiClient {
+
+  private static toBody(params: Indexable) {
+    const map = [];
+    for (const k in params) {
+      if (params.hasOwnProperty(k)) {
+        map.push(`${k}=${encodeURIComponent(params[k])}`);
+      }
+    }
+    return (map.join("&"));
+  }
   private sid: string;
   private readonly baseUrl: string;
+
+  private readonly headers = [['Content-Type', 'application/x-www-form-urlencoded']];
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl + "/cgi-bin/filemanager";
@@ -12,8 +24,9 @@ export class ApiClient {
 
   async login(userName: string, password: string) {
     const response = await fetch(`${this.baseUrl}/wfm2Login.cgi`, {
-      body: this.toBody({user: userName, pwd: btoa(password)}),
-      method: "POST"
+      body: ApiClient.toBody({user: userName, pwd: btoa(password)}),
+      method: "POST",
+      headers : this.headers
     });
 
     if (!response.ok) {
@@ -32,7 +45,8 @@ export class ApiClient {
   async logout() {
     const response = await fetch(`${this.baseUrl}/wfm2Logout.cgi`, {
       body: null,
-      method: "POST"
+      method: "POST",
+      headers : this.headers
     });
 
     if (!response.ok) {
@@ -47,7 +61,7 @@ export class ApiClient {
     const resp = await fetch(
       `${this.baseUrl}/utilRequest.cgi?func=get_list&sid=${this.sid}`,
       {
-        body: this.toBody({
+        body: ApiClient.toBody({
           start,
           limit,
           sort: "filename",
@@ -62,7 +76,8 @@ export class ApiClient {
           recycle: 0,
           hidden_file: 0
         }),
-        method: "POST"
+        method: "POST",
+        headers : this.headers
       }
     );
     const body = await resp.json().cast<GetListResponse | ErrorResponse>();
@@ -77,14 +92,15 @@ export class ApiClient {
     const resp = await fetch(
       `${this.baseUrl}/utilRequest.cgi?func=get_tree&sid=${this.sid}`,
       {
-        body: this.toBody({
+        body: ApiClient.toBody({
           is_iso: 0,
           hidden_file: 0,
           recycle: 0,
           check_acl: 0,
           node: path
         }),
-        method: "POST"
+        method: "POST",
+        headers : this.headers
       }
     );
     const body = await resp.json().cast<GetTreeResponseItem[] | ErrorResponse>();
@@ -102,7 +118,7 @@ export class ApiClient {
     const resp = await fetch(
       `${this.baseUrl}/utilRequest.cgi?func=download&sid=${this.sid}`,
       {
-        body: this.toBody({
+        body: ApiClient.toBody({
           isfolder: 0,
           compress: 0,
           source_total: 1,
@@ -110,22 +126,11 @@ export class ApiClient {
           source_path: folder,
           source_file: fileName
         }),
-        method: "POST"
+        method: "POST",
+        headers : this.headers
       }
     );
-
-    const body = await resp.arrayBuffer();
-    return body;
-  }
-
-  private toBody(params: Indexable) {
-    const map = [];
-    for (const k in params) {
-      if (params.hasOwnProperty(k)) {
-        map.push(`${k}=${encodeURIComponent(params[k])}`);
-      }
-    }
-    return (map.join("&"));
+    return resp.arrayBuffer();
   }
 }
 
