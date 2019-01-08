@@ -6,3 +6,10 @@
     position: absolute;
     left: 30%;
 }
+.metaData span,strong{
+  margin-right: 5px;
+}
+
+.metaData div{
+  float: left;
+}

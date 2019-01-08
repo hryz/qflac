@@ -13,6 +13,11 @@
   padding-left: 10px;
 }
 
+.previewFile.active{
+  background-color: #aaaaaa;
+  color: white;
+}
+
 .previewFolder{
   margin-top: 5px;
   margin-bottom: 5px;

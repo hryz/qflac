@@ -10,8 +10,10 @@ export interface PreviewItem {
 }
 
 interface Props {
-  api: ApiClient,
-  items: PreviewItem []
+  api: ApiClient;
+  items: PreviewItem [];
+  activeItem?: PreviewItem;
+  activate: (item: PreviewItem) => Promise<void>;
 }
 
 export class Preview extends React.Component<Props> {
@@ -28,7 +30,16 @@ export class Preview extends React.Component<Props> {
   };
 
   file = (path: string, file: string) => {
-    return <div key={`${path}/${file}`} className="previewFile">{file}</div>
+    const a = this.props.activeItem;
+    const extraClass = a && a.folder === path && a.fileName === file ? 'active' : '';
+    const activate = (_: any) => this.props.activate({folder: path, fileName: file});
+
+    return <div
+      key={`${path}/${file}`}
+      className={['previewFile', extraClass].join(' ')}
+      onClick={activate}>
+      {file}
+    </div>
   };
 
   public render() {

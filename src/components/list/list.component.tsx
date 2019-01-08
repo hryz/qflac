@@ -84,7 +84,7 @@ export class List extends React.Component<Props, State> {
 
     const children = await Promise.all(childPromises);
     children.forEach(c => c.forEach(x => result.push(x)));
-    
+
     return result;
   };
 

@@ -9,7 +9,8 @@ interface State {
 }
 
 class App extends Component<{}, State> {
-  baseUri = "http://192.168.88.253:8080";
+  // baseUri = "http://192.168.88.253:8080";
+  baseUri = "http://hryz.myqnapcloud.com:8080";
   api: ApiClient;
 
   constructor() {
