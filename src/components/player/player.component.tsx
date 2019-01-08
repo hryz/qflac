@@ -14,14 +14,15 @@ interface State {
   player?: Player | null,
   activeItem?: PreviewItem,
   progress?: number,
-  isPlaying: boolean
+  isPlaying: boolean,
+  volume: number
 }
 
 export class PlayerComponent extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
-    this.state = {isPlaying: false};
+    this.state = {isPlaying: false, volume: 50};
     this.next.bind(this);
   }
 
@@ -42,6 +43,7 @@ export class PlayerComponent extends React.Component<Props, State> {
     const player = AV.Player.fromBuffer(file);
     player.on('progress', this.showProgress);
     player.on('end', this.next);
+    player.volume = this.state.volume;
     player.play();
     this.setState({
       player,
@@ -84,6 +86,32 @@ export class PlayerComponent extends React.Component<Props, State> {
     this.setState({...this.state, isPlaying: !this.state.isPlaying});
   };
 
+  volUp = () => {
+    const volume = this.state.volume < 90 ? this.state.volume + 10 : 100;
+    if (this.state.player && this.state.player.volume !== undefined) {
+      this.state.player.volume = volume;
+    }
+    this.setState({...this.state, volume});
+  };
+
+  volDown = () => {
+    const volume = this.state.volume > 10 ? this.state.volume - 10 : 0;
+    if (this.state.player && this.state.player.volume !== undefined) {
+      this.state.player.volume = volume;
+    }
+    this.setState({...this.state, volume});
+  };
+
+  toTime = (ms: number) => {
+    const totalSec = Math.floor(ms / 1000);
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec - min * 60;
+
+    return min.toString().padStart(2, '0')
+      + ':' +
+      sec.toString().padStart(2, '0');
+  };
+
   public render() {
     const prev = this.state.activeItem;
     const cur = this.props.activeItem;
@@ -99,18 +127,25 @@ export class PlayerComponent extends React.Component<Props, State> {
     const md = this.state.player && this.state.player.metadata ? this.state.player.metadata :
       {album: '-', artist: '-', date: '-', genre: '-', title: '-', tracknumber: '-', vendor: '-'};
 
+    const volUp = (_: any) => this.volUp();
+    const volDown = (_: any) => this.volDown();
+
     return <div className="player">
 
       <div className="metaData">
-        <strong>artist:</strong> <span>{md.artist}</span>
-        <strong>title:</strong> <span>{md.title}</span>
-        <strong>track:</strong> <span>{md.tracknumber}</span>
-        <strong>album:</strong> <span>{md.album}</span>
+        <strong>Artist:</strong> <span>{md.artist}</span>
+        <strong>Title:</strong> <span>{md.title}</span>
+        <strong>Track No:</strong> <span>{md.tracknumber}</span>
+        <strong>Album:</strong> <span>{md.album}</span>
       </div>
 
       <div>
-        <button onClick={playOrPause}>{this.state.isPlaying ? 'Pause' : 'Play'}</button>
-        <strong>progress:</strong> <span>{now}/{total}</span>
+        <button onClick={playOrPause}>{this.state.isPlaying ? '⏸️' : '▶️'}</button>
+        <span>{this.toTime(now)}/{this.toTime(total)}</span>
+        <button onClick={volDown}>🔉</button>
+        <span>Vol:{this.state.volume}</span>
+        <button onClick={volUp}>🔊</button>
+
       </div>
     </div>;
   }
