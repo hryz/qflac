@@ -9,16 +9,20 @@ interface State {
 }
 
 class App extends Component<{}, State> {
-  baseUri = "http://192.168.88.253:8080";
-  // baseUri = "http://hryz.myqnapcloud.com:8080";
+  baseUriDev = "http://192.168.88.253:8080";
+  baseUriProd = "http://hryz.myqnapcloud.com:8080";
   api: ApiClient;
 
   constructor() {
     super({});
 
-    this.api = new ApiClient(this.baseUri);
+    this.api = new ApiClient(this.baseUri());
     this.state = {isLoggedIn: false};
   }
+
+  baseUri = () => window.location.hostname === 'localhost' || window.location.hostname === '192.168.88.253'
+    ? this.baseUriDev
+    : this.baseUriProd;
 
   login = async (x: boolean) => {
     this.setState({isLoggedIn: x});
