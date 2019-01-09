@@ -35,8 +35,8 @@ export class PlayerComponent extends React.Component<Props, State> {
 
   initPlayer = (file: ArrayBuffer) => {
     if (this.state.player) {
-      this.state.player.off('progress');
-      this.state.player.off('end');
+      this.state.player.off('progress', this.showProgress);
+      this.state.player.off('end',this.next);
       this.state.player.stop();
     }
 
@@ -51,6 +51,8 @@ export class PlayerComponent extends React.Component<Props, State> {
       progress: player.currentTime,
       isPlaying: true
     });
+
+
   };
 
   next = (): Promise<void> => {
