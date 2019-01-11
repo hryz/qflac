@@ -2,7 +2,7 @@ import * as React from "react";
 import {Preview, PreviewItem} from "../preview/preview.component";
 import {List} from "../list/list.component";
 import {PlayerComponent} from "../player/player.component";
-import {ApiClient} from "../../shared/api";
+import {ApiClient, FetchRequest} from "../../shared/api";
 
 interface Props {
   api: ApiClient;
@@ -11,7 +11,7 @@ interface Props {
 interface State {
   previewFiles: PreviewItem[];
   activePreviewItem?: PreviewItem;
-  buffer?: ArrayBuffer
+  downloadRequest?: FetchRequest
 }
 
 export class Main extends React.Component<Props, State> {
@@ -23,13 +23,13 @@ export class Main extends React.Component<Props, State> {
     };
   }
 
-  activate = async (item: PreviewItem) => {
-    const file = await this.props.api.download([item.folder, item.fileName].join('/'));
+  activate = (item: PreviewItem) => {
+    const file = this.props.api.downloadRequest([item.folder, item.fileName].join('/'));
 
     this.setState({
       ...this.state,
       activePreviewItem: item,
-      buffer: file
+      downloadRequest: file
     });
   };
 
@@ -44,7 +44,7 @@ export class Main extends React.Component<Props, State> {
         <PlayerComponent
           items={this.state.previewFiles}
           activate={this.activate}
-          buffer={this.state.buffer}
+          downloadRequest={this.state.downloadRequest}
           activeItem={this.state.activePreviewItem}/>
         <Preview
           api={this.props.api}

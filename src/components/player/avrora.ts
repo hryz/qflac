@@ -62,7 +62,7 @@ export interface Metadata {
   vendor: string;
 }
 
-export type AssetEvents = 'error' | 'duration' | 'metadata' | 'format' | 'data' | 'end' | 'decodeStart'
+export type AssetEvents = 'error' | 'duration' | 'metadata' | 'format' | 'data' | 'end' | 'decodeStart' | 'buffer'
 
 export interface Asset extends EventEmitter<AssetEvents> {
   start(decode: any): void;
@@ -102,5 +102,5 @@ export interface EventEmitter<TEvent> {
 
   once(e: TEvent, handler: (e: any) => void): void;
 
-  emit(e: TEvent, ...params: any): void;
+  emit(e: TEvent, params: any): void;
 }

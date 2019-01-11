@@ -1,6 +1,11 @@
 import {LoginResponse, LogoutResponse, GetTreeResponseItem, GetListResponse, LoginError, ErrorResponse} from "./models";
 import '../shared/extensions'
 
+export interface FetchRequest {
+  url: string,
+  request: RequestInit
+}
+
 export class ApiClient {
 
   private static toBody(params: Indexable) {
@@ -12,6 +17,7 @@ export class ApiClient {
     }
     return (map.join("&"));
   }
+
   private sid: string;
   private readonly baseUrl: string;
 
@@ -26,7 +32,7 @@ export class ApiClient {
     const response = await fetch(`${this.baseUrl}/wfm2Login.cgi`, {
       body: ApiClient.toBody({user: userName, pwd: btoa(password)}),
       method: "POST",
-      headers : this.headers
+      headers: this.headers
     });
 
     if (!response.ok) {
@@ -46,7 +52,7 @@ export class ApiClient {
     const response = await fetch(`${this.baseUrl}/wfm2Logout.cgi`, {
       body: null,
       method: "POST",
-      headers : this.headers
+      headers: this.headers
     });
 
     if (!response.ok) {
@@ -77,7 +83,7 @@ export class ApiClient {
           hidden_file: 0
         }),
         method: "POST",
-        headers : this.headers
+        headers: this.headers
       }
     );
     const body = await resp.json().cast<GetListResponse | ErrorResponse>();
@@ -100,7 +106,7 @@ export class ApiClient {
           node: path
         }),
         method: "POST",
-        headers : this.headers
+        headers: this.headers
       }
     );
     const body = await resp.json().cast<GetTreeResponseItem[] | ErrorResponse>();
@@ -110,14 +116,14 @@ export class ApiClient {
     throw Error(`Can not get tree of ${path}`);
   }
 
-  async download(path: string) {
+  downloadRequest(path: string):FetchRequest {
     const lastSlash = path.lastIndexOf("/");
     const fileName = path.slice(lastSlash + 1);
     const folder = path.slice(0, lastSlash);
 
-    const resp = await fetch(
-      `${this.baseUrl}/utilRequest.cgi?func=download&sid=${this.sid}`,
-      {
+    return {
+      url: `${this.baseUrl}/utilRequest.cgi?func=download&sid=${this.sid}`,
+      request: {
         body: ApiClient.toBody({
           isfolder: 0,
           compress: 0,
@@ -127,9 +133,14 @@ export class ApiClient {
           source_file: fileName
         }),
         method: "POST",
-        headers : this.headers
+        headers: this.headers
       }
-    );
+    }
+  }
+
+  async download(path: string) {
+    const {url, request} = this.downloadRequest(path);
+    const resp = await fetch(url, request);
     return resp.arrayBuffer();
   }
 }

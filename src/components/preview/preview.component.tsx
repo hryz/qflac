@@ -13,7 +13,7 @@ interface Props {
   api: ApiClient;
   items: PreviewItem [];
   activeItem?: PreviewItem;
-  activate: (item: PreviewItem) => Promise<void>;
+  activate: (item: PreviewItem) => void;
 }
 
 export class Preview extends React.Component<Props> {

@@ -2,18 +2,21 @@ import * as React from "react";
 import './player.css'
 import {PreviewItem} from "../preview/preview.component";
 import {Player} from "./avrora";
+import {FetchRequest} from "../../shared/api";
+import {FetchDataSource} from "./dataSource";
 
 interface Props {
   items: PreviewItem []
-  activate: (item: PreviewItem) => Promise<void>
+  activate: (item: PreviewItem) => void
   activeItem?: PreviewItem
-  buffer?: ArrayBuffer
+  downloadRequest?: FetchRequest
 }
 
 interface State {
   player?: Player | null,
   activeItem?: PreviewItem,
   progress?: number,
+  buffering?:number,
   isPlaying: boolean,
   volume: number
 }
@@ -33,16 +36,28 @@ export class PlayerComponent extends React.Component<Props, State> {
     this.setState({...this.state, progress: x});
   };
 
-  initPlayer = (file: ArrayBuffer) => {
+  showBuffering = (x: number) => {
+    if (!this.state.player) {
+      return;
+    }
+    this.setState({...this.state, buffering: x});
+  };
+
+  initPlayer = (file: FetchRequest) => {
     if (this.state.player) {
       this.state.player.off('progress', this.showProgress);
       this.state.player.off('end',this.next);
+      this.state.player.off('buffer', this.showBuffering);
       this.state.player.stop();
     }
 
-    const player = AV.Player.fromBuffer(file);
+    const source = new FetchDataSource(file.url, file.request);
+    const asset = new AV.Asset(source);
+    const player = new AV.Player(asset);
+
     player.on('progress', this.showProgress);
     player.on('end', this.next);
+    asset.on('buffer', this.showBuffering);
     player.volume = this.state.volume;
     player.play();
     this.setState({
@@ -51,11 +66,9 @@ export class PlayerComponent extends React.Component<Props, State> {
       progress: player.currentTime,
       isPlaying: true
     });
-
-
   };
 
-  next = (): Promise<void> => {
+  next = (): void => {
     if (this.props.items.length === 0) {
       throw Error('Can not play next because playlist is empty');
     }
@@ -68,16 +81,20 @@ export class PlayerComponent extends React.Component<Props, State> {
     const i = this.state.activeItem;
     const item = is.firstOrDefault(x => x.fileName === i.fileName && x.folder === i.folder);
     if (!item) {
-      return this.props.activate(is[0]);
+      this.props.activate(is[0]);
+      return;
     }
     const index = is.indexOf(item);
     if (index === -1) {
-      return this.props.activate(is[0]);
+      this.props.activate(is[0]);
+      return;
     }
     if (index === is.length - 1) {
-      return this.props.activate(is[0]);
+      this.props.activate(is[0]);
+      return;
     }
-    return this.props.activate(is[index + 1]);
+    this.props.activate(is[index + 1]);
+    return;
   };
 
   playOrPause = () => {
@@ -118,8 +135,8 @@ export class PlayerComponent extends React.Component<Props, State> {
     const prev = this.state.activeItem;
     const cur = this.props.activeItem;
     if (!cur || !prev || cur.fileName !== prev.fileName || cur.folder !== prev.folder) {
-      if (this.props.buffer) {
-        this.initPlayer(this.props.buffer);
+      if (this.props.downloadRequest) {
+        this.initPlayer(this.props.downloadRequest);
       }
     }
 
@@ -147,7 +164,7 @@ export class PlayerComponent extends React.Component<Props, State> {
         <button onClick={volDown}>🔉</button>
         <span>Vol:{this.state.volume}</span>
         <button onClick={volUp}>🔊</button>
-
+        <span>Buffering: {this.state.buffering || 0} %</span>
       </div>
     </div>;
   }
