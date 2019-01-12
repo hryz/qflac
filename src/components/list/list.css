@@ -6,28 +6,10 @@
   padding: 5px;
 }
 
-.listItem {
-  display: block;
-  width: 100%;
-  white-space: nowrap;
-}
-
-.icon {
-  margin-inline-end: 5px;
-}
-
-.play:after {
-  content: '▶';
-  margin-inline-end: 5px;
-}
-
-.path button {
-  float: left;
-  width: 40px;
-}
-
-.path div {
-  white-space: nowrap;
-  border-bottom: 1px solid black;
-  margin-left: 45px;
+.rc-tree-node-selected{
+  background-color: inherit;
+  border: inherit;
+  opacity: inherit;
+  font-weight: 600;
+  color: #316ac5;
 }
