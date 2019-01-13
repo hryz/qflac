@@ -1,11 +1,13 @@
 import * as React from "react";
 import './player.css'
 import {PreviewItem} from "../preview/preview.component";
-import {Player} from "./avrora";
-import {FetchRequest} from "../../shared/api";
-import {FetchDataSource} from "./dataSource";
+import {Metadata, Player} from "./avrora";
+import {ApiClient, FetchRequest} from "../../shared/api";
+import Slider, {Marks, Range} from 'rc-slider';
+import 'rc-slider/assets/index.css';
 
 interface Props {
+  api: ApiClient
   items: PreviewItem []
   activate: (item: PreviewItem) => void
   activeItem?: PreviewItem
@@ -13,15 +15,16 @@ interface Props {
 }
 
 interface State {
-  player?: Player | null,
-  activeItem?: PreviewItem,
+  duration?: number,
   progress?: number,
-  buffering?:number,
+  buffering?: number,
+  metaData?: Metadata,
   isPlaying: boolean,
   volume: number
 }
 
 export class PlayerComponent extends React.Component<Props, State> {
+  player?: Player;
 
   constructor(props: Props) {
     super(props);
@@ -29,41 +32,61 @@ export class PlayerComponent extends React.Component<Props, State> {
     this.next.bind(this);
   }
 
+  async componentWillUpdate(nextProps: Readonly<Props>, nextState: Readonly<State>, nextContext: any): Promise<void> {
+    if (!this.props.activeItem || this.props.activeItem !== nextProps.activeItem) {
+      if (nextProps.downloadRequest) {
+        await this.initPlayer(nextProps.downloadRequest, nextProps.activeItem);
+      }
+    }
+  }
+
   showProgress = (x: number) => {
-    if (!this.state.player) {
+    if (!this.player) {
       return;
     }
-    this.setState({...this.state, progress: x});
+    this.setState({...this.state, progress: x, duration: this.player.duration});
   };
 
   showBuffering = (x: number) => {
-    if (!this.state.player) {
+    if (!this.player) {
       return;
     }
     this.setState({...this.state, buffering: x});
   };
 
-  initPlayer = (file: FetchRequest) => {
-    if (this.state.player) {
-      this.state.player.off('progress', this.showProgress);
-      this.state.player.off('end',this.next);
-      this.state.player.off('buffer', this.showBuffering);
-      this.state.player.stop();
+  setMetadata = (md: Metadata) => {
+    this.setState({...this.state, metaData: md});
+  };
+
+  initPlayer = async (file: FetchRequest, activeItem?: PreviewItem) => {
+    if (this.player) {
+      this.player.off('progress', this.showProgress);
+      this.player.off('end', this.next);
+      this.player.off('buffer', this.showBuffering);
+      this.player.off('metadata', this.setMetadata);
+      this.player.stop();
     }
 
-    const source = new FetchDataSource(file.url, file.request);
-    const asset = new AV.Asset(source);
+    if (!activeItem) {
+      return;
+    }
+
+    // const source = new FetchDataSource(file.url, file.request);
+    // const asset = new AV.Asset(source);
+    // const player = new AV.Player(asset);
+    const buffer = await this.props.api.download(activeItem.folder + '/' + activeItem.fileName);
+    const asset = AV.Asset.fromBuffer(buffer);
     const player = new AV.Player(asset);
+    this.player = player;
+
 
     player.on('progress', this.showProgress);
     player.on('end', this.next);
-    asset.on('buffer', this.showBuffering);
+    player.on('buffer', this.showBuffering);
+    player.on('metadata', this.setMetadata);
     player.volume = this.state.volume;
     player.play();
     this.setState({
-      player,
-      activeItem: this.props.activeItem,
-      progress: player.currentTime,
       isPlaying: true
     });
   };
@@ -73,53 +96,58 @@ export class PlayerComponent extends React.Component<Props, State> {
       throw Error('Can not play next because playlist is empty');
     }
 
-    if (!this.state.activeItem) {
+    if (!this.props.activeItem) {
       throw Error('Can not play next because current is unknown');
     }
 
-    const is = this.props.items;
-    const i = this.state.activeItem;
-    const item = is.firstOrDefault(x => x.fileName === i.fileName && x.folder === i.folder);
+    const items = this.props.items;
+    const i = this.props.activeItem;
+    const item = items.find(x => x.fileName === i.fileName && x.folder === i.folder);
     if (!item) {
-      this.props.activate(is[0]);
+      this.props.activate(items[0]);
       return;
     }
-    const index = is.indexOf(item);
+    const index = items.indexOf(item);
     if (index === -1) {
-      this.props.activate(is[0]);
+      this.props.activate(items[0]);
       return;
     }
-    if (index === is.length - 1) {
-      this.props.activate(is[0]);
+    if (index === items.length - 1) {
+      this.props.activate(items[0]);
       return;
     }
-    this.props.activate(is[index + 1]);
+    this.props.activate(items[index + 1]);
     return;
   };
 
   playOrPause = () => {
-    if (!this.state.player) {
+    if (!this.player) {
       return;
     }
-    this.state.player.togglePlayback();
+
+    this.player.togglePlayback();
     this.setState({...this.state, isPlaying: !this.state.isPlaying});
   };
 
-  volUp = () => {
-    const volume = this.state.volume < 90 ? this.state.volume + 10 : 100;
-    if (this.state.player && this.state.player.volume !== undefined) {
-      this.state.player.volume = volume;
+  seek = (e: number) => {
+    if (!this.player) {
+      return;
     }
-    this.setState({...this.state, volume});
+
+    try {
+      this.player.seek(e);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  volDown = () => {
-    const volume = this.state.volume > 10 ? this.state.volume - 10 : 0;
-    if (this.state.player && this.state.player.volume !== undefined) {
-      this.state.player.volume = volume;
+  setVolume = (vol: number) => {
+    if (this.player && this.player.volume !== undefined) {
+      this.player.volume = vol;
     }
-    this.setState({...this.state, volume});
+    this.setState({...this.state, volume: vol});
   };
+
 
   toTime = (ms: number) => {
     const totalSec = Math.floor(ms / 1000);
@@ -132,39 +160,49 @@ export class PlayerComponent extends React.Component<Props, State> {
   };
 
   public render() {
-    const prev = this.state.activeItem;
-    const cur = this.props.activeItem;
-    if (!cur || !prev || cur.fileName !== prev.fileName || cur.folder !== prev.folder) {
-      if (this.props.downloadRequest) {
-        this.initPlayer(this.props.downloadRequest);
-      }
-    }
 
     const playOrPause = (_: any) => this.playOrPause();
-    const total = this.state.player && this.state.player.duration ? this.state.player.duration : 0;
-    const now = this.state.player && this.state.player.currentTime ? this.state.player.currentTime : 0;
-    const md = this.state.player && this.state.player.metadata ? this.state.player.metadata :
+    const total = this.state.duration || 0;
+    const now = this.state.progress || 0;
+    const md = this.state.metaData ||
       {album: '-', artist: '-', date: '-', genre: '-', title: '-', tracknumber: '-', vendor: '-'};
 
-    const volUp = (_: any) => this.volUp();
-    const volDown = (_: any) => this.volDown();
+    const marks: Marks = {};
+    for (let i = 0; i < total; i += 10000) {
+      marks[i] = this.toTime(i);
+      //marks[i] = '';
+    }
 
     return <div className="player">
 
+
       <div className="metaData">
+        <button onClick={playOrPause}>{this.state.isPlaying ? '⏸️' : '▶️'}</button>
         <strong>Artist:</strong> <span>{md.artist}</span>
         <strong>Title:</strong> <span>{md.title}</span>
         <strong>Track No:</strong> <span>{md.tracknumber}</span>
         <strong>Album:</strong> <span>{md.album}</span>
+
+      </div>
+      <div className="volume">
+        <Slider
+          value={this.state.volume}
+          onChange={this.setVolume}
+          max={100}
+          min={0}/>
       </div>
 
-      <div>
-        <button onClick={playOrPause}>{this.state.isPlaying ? '⏸️' : '▶️'}</button>
-        <span>{this.toTime(now)}/{this.toTime(total)}</span>
-        <button onClick={volDown}>🔉</button>
-        <span>Vol:{this.state.volume}</span>
-        <button onClick={volUp}>🔊</button>
-        <span>Buffering: {this.state.buffering || 0} %</span>
+
+      <div className="seeker">
+        <div className="now">{this.toTime(now)}</div>
+        <div className="rail">
+          <Slider
+            value={now}
+            max={total}
+            onChange={this.seek}
+            marks={marks}/>
+        </div>
+        <div className="total">{this.toTime(total)}</div>
       </div>
     </div>;
   }

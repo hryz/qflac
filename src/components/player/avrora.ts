@@ -8,9 +8,9 @@ declare global {
     },
     Asset: {
       new(source: Source): Asset;
-      fromBuffer(buffer: ArrayBuffer): Player;
-      fromURL(url: string, opts: { length: number }): Player;
-      fromFile(file: FileReader): Player;
+      fromBuffer(buffer: ArrayBuffer): Asset;
+      fromURL(url: string, opts: { length: number }): Asset;
+      fromFile(file: FileReader): Asset;
     },
     EventEmitter: new<T>() => EventEmitter<T>,
     Buffer: new(data:Uint8Array) => any;

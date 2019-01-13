@@ -13,8 +13,8 @@ class App extends Component<{}, State> {
   baseUriProd = "http://hryz.myqnapcloud.com:8080";
   api: ApiClient;
 
-  constructor() {
-    super({});
+  constructor(props: {}) {
+    super(props);
 
     this.api = new ApiClient(this.baseUri());
     this.state = {isLoggedIn: false};
@@ -24,16 +24,18 @@ class App extends Component<{}, State> {
     ? this.baseUriDev
     : this.baseUriProd;
 
-  login = async (x: boolean) => {
+  login = (x: boolean) => {
     this.setState({isLoggedIn: x});
   };
 
   render() {
-    if (this.state.isLoggedIn) {
-      return <Main api={this.api}/>;
-    } else {
-      return <Login api={this.api} login={this.login}/>;
-    }
+    return (
+      <div>
+        {this.state.isLoggedIn
+          ? (<Main api={this.api}/>)
+          : (<Login api={this.api} login={this.login}/>)}
+      </div>
+    );
   }
 }
 

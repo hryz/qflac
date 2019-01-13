@@ -42,6 +42,7 @@ export class Main extends React.Component<Props, State> {
       <div>
         <List api={this.props.api} sendToPreview={this.sendToPreview}/>
         <PlayerComponent
+          api={this.props.api}
           items={this.state.previewFiles}
           activate={this.activate}
           downloadRequest={this.state.downloadRequest}

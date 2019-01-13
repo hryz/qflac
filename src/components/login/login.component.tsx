@@ -39,9 +39,9 @@ export class Login extends React.Component<Props, State> {
       this.state.userName,
       this.state.password
     );
-    this.props.login(result);
     const message = result ? "" : "Login failed";
     this.setState({...this.state, message});
+    this.props.login(result);
   };
 
   public render() {

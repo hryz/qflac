@@ -6,10 +6,39 @@
     position: absolute;
     left: 30%;
 }
+
+.metaData{
+  width: 70%;
+  float: left;
+}
+
 .metaData span,strong{
   margin-right: 5px;
 }
 
-.metaData div{
+.seeker .now{
+  width: 50px;
   float: left;
+  padding: 5px;
+}
+
+.seeker .total{
+  width: 50px;
+  float: left;
+  padding: 5px;
+
+}
+
+.seeker .rail{
+  float: left;
+  width: calc(100% - 120px);
+
+  margin-top: 10px;
+}
+
+.volume{
+  margin-top: 10px;
+  float: right;
+  margin-right: 10px;
+  width: 25%;
 }

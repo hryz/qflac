@@ -16,75 +16,69 @@ export class FetchDataSource implements Source {
     this.size = 0;
   }
 
-
   start(): void {
     fetch(this.url, this.request)
-      .then(x => {
-        if (x.status !== 200 || x.body === null) {
-          this.errorHandler('error getting data');
-          return;
-        }
-        this.reader = x.body.getReader();
-
-        this.size = parseInt(x.headers.get('content-length') || '0', 0); // TODO: this header is not available because of CORS, even when I changed the apache config
-        this.loaded = 0;
-
-        const processChunk: (x: { done: boolean, value: Uint8Array }) => void = ({done, value}) => {
-
-          if (done) {
-            this.emit('end', {});
-            return;
-          }
-
-          this.loaded += value.length;
-
-          this.emit('progress', (this.loaded / this.size) * 100);
-          this.emit('data', new AV.Buffer(value));
-
-          if (this.reader) {
-            this.reader.read().then(processChunk);
-          }
-        };
-
-        this.reader.read()
-          .then(processChunk)
-          .catch(this.errorHandler);
-      })
+      .then(this.processResponse)
       .catch(this.errorHandler);
   }
 
-  pause(): void {
-    this.reset();
-  }
+  processResponse = (x: Response) => {
+    if (x.status !== 200 || x.body === null) {
+      this.errorHandler('error getting data');
+      return;
+    }
+
+    this.size = parseInt(x.headers.get('content-length') || '0', 0);
+    this.loaded = 0;
+    this.reader = x.body.getReader();
+
+    this.reader.read()
+      .then(this.processChunk)
+      .catch(this.errorHandler);
+  };
+
+  processChunk = (x: { done: boolean, value: Uint8Array }) => {
+    if (x.done) {
+      this.emit('end', {});
+      return;
+    }
+
+    this.loaded += x.value.length;
+
+    const self = this;
+    self.emit('progress', (self.loaded / self.size) * 100);
+    self.emit('data', new AV.Buffer(x.value));
+
+    if (this.reader) {
+      this.reader.read()
+        .then(this.processChunk)
+        .catch(this.errorHandler);
+    } else {
+      this.errorHandler('reader is null');
+    }
+  };
+
+  pause = () => this.reset();
 
   reset(): void {
     if (this.reader) {
       this.reader.cancel()
-        .then(() => {
-          this.reader = null;
-        });
+        .then(() => this.reader = null)
+        .catch(this.errorHandler);
+    } else {
+      this.errorHandler('reader is null');
     }
   }
 
-  emit(e: SourceEvents, params: any): void {
-    this.events.emit(e, params);
-  }
-
-  off(e: SourceEvents, handler: (e: any) => void): void {
-    this.events.off(e, handler);
-  }
-
-  on(e: SourceEvents, handler: (e: any) => void): void {
-    this.events.on(e, handler);
-  }
-
-  once(e: SourceEvents, handler: (e: any) => void): void {
-    this.events.once(e, handler);
-  }
+  emit = (e: SourceEvents, params: any) => this.events.emit(e, params);
+  off = (e: SourceEvents, handler: (e: any) => void) => this.events.off(e, handler);
+  on = (e: SourceEvents, handler: (e: any) => void) => this.events.on(e, handler);
+  once = (e: SourceEvents, handler: (e: any) => void) => this.events.once(e, handler);
 
   private errorHandler(err: any) {
     this.reset();
-    return this.emit('error', err);
+    this.emit('error', err);
+    console.log(err);
   }
 
 }

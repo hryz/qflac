@@ -145,6 +145,7 @@ export class List extends React.Component<Props, State> {
         selectable={true}
         onExpand={onExpand}
         onSelect={onSelect}
+        defaultExpandAll={true}
       >
         {this.renderNode(this.state.tree)}
       </Tree>
