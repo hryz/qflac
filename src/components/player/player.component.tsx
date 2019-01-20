@@ -2,16 +2,13 @@ import * as React from "react";
 import './player.css'
 import {PreviewItem} from "../preview/preview.component";
 import {Metadata, Player} from "./avrora";
-import {ApiClient, FetchRequest} from "../../shared/api";
 import Slider, {Marks, Range} from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
 interface Props {
-  api: ApiClient
   items: PreviewItem []
   activate: (item: PreviewItem) => void
   activeItem?: PreviewItem
-  downloadRequest?: FetchRequest
 }
 
 interface State {
@@ -34,9 +31,7 @@ export class PlayerComponent extends React.Component<Props, State> {
 
   async componentWillUpdate(nextProps: Readonly<Props>, nextState: Readonly<State>, nextContext: any): Promise<void> {
     if (!this.props.activeItem || this.props.activeItem !== nextProps.activeItem) {
-      if (nextProps.downloadRequest) {
-        await this.initPlayer(nextProps.downloadRequest, nextProps.activeItem);
-      }
+      await this.initPlayer(nextProps.activeItem);
     }
   }
 
@@ -58,25 +53,27 @@ export class PlayerComponent extends React.Component<Props, State> {
     this.setState({...this.state, metaData: md});
   };
 
-  initPlayer = async (file: FetchRequest, activeItem?: PreviewItem) => {
+  initPlayer = async (activeItem?: PreviewItem) => {
     if (this.player) {
       this.player.off('progress', this.showProgress);
       this.player.off('end', this.next);
       this.player.off('buffer', this.showBuffering);
       this.player.off('metadata', this.setMetadata);
       this.player.stop();
+      delete this.player;
     }
 
     if (!activeItem) {
       return;
     }
 
-    // const source = new FetchDataSource(file.url, file.request);
-    // const asset = new AV.Asset(source);
-    // const player = new AV.Player(asset);
-    const buffer = await this.props.api.download(activeItem.folder + '/' + activeItem.fileName);
-    const asset = AV.Asset.fromBuffer(buffer);
-    const player = new AV.Player(asset);
+    if (!process.env.REACT_APP_API_URL) {
+      return;
+    }
+
+    const url = process.env.REACT_APP_API_URL.replace('/api.php', '');
+
+    const player = AV.Player.fromURL(url + activeItem.folder.substring(1) + '/' + activeItem.fileName);
     this.player = player;
 
 
@@ -133,11 +130,10 @@ export class PlayerComponent extends React.Component<Props, State> {
     if (!this.player) {
       return;
     }
-
     try {
       this.player.seek(e);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // do nothing
     }
   };
 
@@ -169,20 +165,24 @@ export class PlayerComponent extends React.Component<Props, State> {
 
     const marks: Marks = {};
     for (let i = 0; i < total; i += 10000) {
-      marks[i] = this.toTime(i);
-      //marks[i] = '';
+      // marks[i] = this.toTime(i);
+      marks[i] = '';
     }
+
+    const buffering = this.state.buffering
+      ? this.state.buffering.toFixed(0)
+      : '0';
 
     return <div className="player">
 
 
       <div className="metaData">
         <button onClick={playOrPause}>{this.state.isPlaying ? '⏸️' : '▶️'}</button>
-        <strong>Artist:</strong> <span>{md.artist}</span>
-        <strong>Title:</strong> <span>{md.title}</span>
-        <strong>Track No:</strong> <span>{md.tracknumber}</span>
-        <strong>Album:</strong> <span>{md.album}</span>
-
+        <strong>Artist:</strong><span>{md.artist}</span>
+        <strong>Title:</strong><span>{md.title}</span>
+        <strong>Track No:</strong><span>{md.tracknumber}</span>
+        <strong>Album:</strong><span>{md.album}</span>
+        <strong>Buffering:</strong><span>{buffering}%</span>
       </div>
       <div className="volume">
         <Slider

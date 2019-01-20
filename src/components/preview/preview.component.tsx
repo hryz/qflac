@@ -1,6 +1,5 @@
 import * as React from "react";
 import './preview.css'
-import {ApiClient} from "../../shared/api";
 import '../../shared/extensions';
 
 
@@ -10,7 +9,6 @@ export interface PreviewItem {
 }
 
 interface Props {
-  api: ApiClient;
   items: PreviewItem [];
   activeItem?: PreviewItem;
   activate: (item: PreviewItem) => void;

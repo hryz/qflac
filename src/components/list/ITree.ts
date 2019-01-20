@@ -23,3 +23,14 @@ export function findTree<T>(src: ITree<T>, f: (tree: ITree<T>) => boolean): ITre
     return undefined;
   }
 }
+
+export function flatten<T>(src: ITree<T>) : T[] {
+  const result: T[] = [];
+  result.push(src.node);
+  for (const c of src.childNodes){
+     for(const x of flatten(c)){
+       result.push(x);
+     }
+  }
+  return result;
+}

@@ -3,13 +3,13 @@ declare global {
     Player: {
       new(asset: Asset): Player;
       fromBuffer(buffer: ArrayBuffer): Player;
-      fromURL(url: string, opts: { length: number }): Player;
+      fromURL(url: string, opts?: { length: number }): Player;
       fromFile(file: FileReader): Player;
     },
     Asset: {
       new(source: Source): Asset;
       fromBuffer(buffer: ArrayBuffer): Asset;
-      fromURL(url: string, opts: { length: number }): Asset;
+      fromURL(url: string, opts?: { length: number }): Asset;
       fromFile(file: FileReader): Asset;
     },
     EventEmitter: new<T>() => EventEmitter<T>,
