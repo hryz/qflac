@@ -2,7 +2,7 @@ import * as React from "react";
 import './player.css'
 import {PreviewItem} from "../preview/preview.component";
 import {Metadata, Player} from "./avrora";
-import Slider, {Marks, Range} from 'rc-slider';
+import Slider, {Marks} from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
 interface Props {
@@ -71,9 +71,9 @@ export class PlayerComponent extends React.Component<Props, State> {
       return;
     }
 
-    const url = process.env.REACT_APP_API_URL.replace('/api.php', '');
-
-    const player = AV.Player.fromURL(url + activeItem.folder.substring(1) + '/' + activeItem.fileName);
+    let url = process.env.REACT_APP_API_URL.replace('/api.php', '');
+    url = url + activeItem.folder.substring(1) + '/' + activeItem.fileName;
+    const player = AV.Player.fromURL(url.replace('#', '%23'));
     this.player = player;
 
 
@@ -157,7 +157,7 @@ export class PlayerComponent extends React.Component<Props, State> {
 
   public render() {
 
-    const playOrPause = (_: any) => this.playOrPause();
+    const playOrPause = () => this.playOrPause();
     const total = this.state.duration || 0;
     const now = this.state.progress || 0;
     const md = this.state.metaData ||
