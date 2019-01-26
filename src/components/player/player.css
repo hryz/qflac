@@ -1,44 +1,58 @@
+
 .player {
-    width: 69%;
-    height: 10%;
-    border-color: black;
-    border: 1px solid black;
-    position: absolute;
-    left: 30%;
+  display: grid;
+
+  grid-template-columns: auto 20%;
+  grid-template-rows: auto 30px;
+  justify-content: space-between;
+
+  border-bottom: 1px solid #6c6c6c;
+  overflow: hidden;
+  padding: 5px;
 }
 
 .metaData{
-  width: 70%;
-  float: left;
+  grid-column: 1;
+  grid-row: 1 ;
 }
 
-.metaData span,strong{
-  margin-right: 5px;
+.metaData strong{
+  margin-left: 5px;
 }
-
-.seeker .now{
-  width: 50px;
-  float: left;
-  padding: 5px;
-}
-
-.seeker .total{
-  width: 50px;
-  float: left;
-  padding: 5px;
-
-}
-
-.seeker .rail{
-  float: left;
-  width: calc(100% - 120px);
-
-  margin-top: 10px;
+.metaData span{
+  margin-left: 5px;
 }
 
 .volume{
-  margin-top: 10px;
-  float: right;
-  margin-right: 10px;
-  width: 25%;
+  grid-column: 2;
+  grid-row: 1 ;
+  padding-right: 10px;
 }
+
+.seeker{
+  grid-column: 1 / span 2;
+  grid-row: 2 ;
+
+  display: grid;
+  grid-template-columns: 50px auto 50px;
+  grid-template-rows: auto;
+}
+
+.now{
+  grid-column: 1;
+}
+
+.rail{
+  grid-column: 2;
+}
+
+.total{
+  grid-column: 3;
+}
+
+.center{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+

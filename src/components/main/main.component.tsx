@@ -9,7 +9,7 @@ interface State {
 }
 
 export class Main extends React.Component<{}, State> {
-  constructor(props:{}) {
+  constructor(props: {}) {
     super(props);
 
     this.state = {
@@ -30,7 +30,7 @@ export class Main extends React.Component<{}, State> {
 
   public render() {
     return (
-      <div>
+      <div className="app">
         <List sendToPreview={this.sendToPreview}/>
         <PlayerComponent
           items={this.state.previewFiles}

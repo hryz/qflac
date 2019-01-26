@@ -123,7 +123,7 @@ export class List extends React.Component<Props, State> {
 
     return (
       <Tree
-        className="listPanel"
+        className="listView"
         showLine
         checkable={false}
         selectable={true}

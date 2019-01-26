@@ -184,7 +184,7 @@ export class PlayerComponent extends React.Component<Props, State> {
         <strong>Album:</strong><span>{md.album}</span>
         <strong>Buffering:</strong><span>{buffering}%</span>
       </div>
-      <div className="volume">
+      <div className="volume center">
         <Slider
           value={this.state.volume}
           onChange={this.setVolume}
@@ -194,15 +194,15 @@ export class PlayerComponent extends React.Component<Props, State> {
 
 
       <div className="seeker">
-        <div className="now">{this.toTime(now)}</div>
-        <div className="rail">
+        <div className="now center">{this.toTime(now)}</div>
+        <div className="rail center">
           <Slider
             value={now}
             max={total}
             onChange={this.seek}
             marks={marks}/>
         </div>
-        <div className="total">{this.toTime(total)}</div>
+        <div className="total center">{this.toTime(total)}</div>
       </div>
     </div>;
   }

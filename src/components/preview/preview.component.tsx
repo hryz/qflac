@@ -30,7 +30,7 @@ export class Preview extends React.Component<Props> {
   file = (path: string, file: string) => {
     const a = this.props.activeItem;
     const extraClass = a && a.folder === path && a.fileName === file ? 'active' : '';
-    const activate = (_: any) => this.props.activate({folder: path, fileName: file});
+    const activate = () => this.props.activate({folder: path, fileName: file});
 
     return <div
       key={`${path}/${file}`}
@@ -43,14 +43,13 @@ export class Preview extends React.Component<Props> {
   public render() {
     const folders = this.props.items
       .groupBy(x => x.folder)
-      .map(g => {
-        return {
-          key: g.key,
-          values: g.values.map(v => v.fileName)
-        } as Grouping<string, string>
-      });
+      .map(g => ({
+        key: g.key,
+        values: g.values.map(v => v.fileName)
+      }));
+
     const list = this.folders(folders);
 
-    return <div className="preview">{list}</div>;
+    return <div className="playList">{list}</div>;
   }
 }
