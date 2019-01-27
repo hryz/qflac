@@ -16,11 +16,9 @@
   grid-row: 1 ;
 }
 
-.metaData strong{
-  margin-left: 5px;
-}
-.metaData span{
-  margin-left: 5px;
+.metaData span:nth-child(2){
+  margin-left: 10px;
+  font-weight: 600;
 }
 
 .volume{
@@ -56,3 +54,7 @@
   justify-content: center;
 }
 
+.playButton{
+  font-size: 20px;
+  cursor: pointer;
+}

@@ -1,16 +1,16 @@
-export interface ITree<T> {
+export interface Tree<T> {
   node: T;
-  childNodes: Array<ITree<T>>;
+  childNodes: Array<Tree<T>>;
 }
 
-export function mapTree<T1, T2>(src: ITree<T1>, mapper: (t1: T1) => T2): ITree<T2> {
+export function mapTree<T1, T2>(src: Tree<T1>, mapper: (t1: T1) => T2): Tree<T2> {
   return {
     node: mapper(src.node),
     childNodes: src.childNodes.map(c => mapTree(c, mapper))
   }
 }
 
-export function findTree<T>(src: ITree<T>, f: (tree: ITree<T>) => boolean): ITree<T> | undefined {
+export function findTree<T>(src: Tree<T>, f: (tree: Tree<T>) => boolean): Tree<T> | undefined {
   if (f(src) === true) {
     return src;
   } else {
@@ -24,7 +24,7 @@ export function findTree<T>(src: ITree<T>, f: (tree: ITree<T>) => boolean): ITre
   }
 }
 
-export function flatten<T>(src: ITree<T>) : T[] {
+export function flatten<T>(src: Tree<T>) : T[] {
   const result: T[] = [];
   result.push(src.node);
   for (const c of src.childNodes){

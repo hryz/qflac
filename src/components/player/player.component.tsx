@@ -2,7 +2,7 @@ import * as React from "react";
 import './player.css'
 import {PreviewItem} from "../preview/preview.component";
 import {Metadata, Player} from "./avrora";
-import Slider, {Marks} from 'rc-slider';
+import Slider, {Range} from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
 interface Props {
@@ -71,8 +71,8 @@ export class PlayerComponent extends React.Component<Props, State> {
       return;
     }
 
-    let url = process.env.REACT_APP_API_URL.replace('/api.php', '');
-    url = url + activeItem.folder.substring(1) + '/' + activeItem.fileName;
+    let url = process.env.REACT_APP_API_URL.replace('api.php', '');
+    url = url + activeItem.folder.substring(2) + '/' + activeItem.fileName;
     const player = AV.Player.fromURL(url.replace('#', '%23'));
     this.player = player;
 
@@ -126,17 +126,6 @@ export class PlayerComponent extends React.Component<Props, State> {
     this.setState({...this.state, isPlaying: !this.state.isPlaying});
   };
 
-  seek = (e: number) => {
-    if (!this.player) {
-      return;
-    }
-    try {
-      this.player.seek(e);
-    } catch {
-      // do nothing
-    }
-  };
-
   setVolume = (vol: number) => {
     if (this.player && this.player.volume !== undefined) {
       this.player.volume = vol;
@@ -160,47 +149,44 @@ export class PlayerComponent extends React.Component<Props, State> {
     const playOrPause = () => this.playOrPause();
     const total = this.state.duration || 0;
     const now = this.state.progress || 0;
-    const md = this.state.metaData ||
-      {album: '-', artist: '-', date: '-', genre: '-', title: '-', tracknumber: '-', vendor: '-'};
-
-    const marks: Marks = {};
-    for (let i = 0; i < total; i += 10000) {
-      // marks[i] = this.toTime(i);
-      marks[i] = '';
-    }
+    const md = this.state.metaData || {artist: '-', title: '-'};
 
     const buffering = this.state.buffering
-      ? this.state.buffering.toFixed(0)
-      : '0';
+      ? this.state.buffering / 100 * total
+      : now;
 
     return <div className="player">
-
-
       <div className="metaData">
-        <button onClick={playOrPause}>{this.state.isPlaying ? '⏸️' : '▶️'}</button>
-        <strong>Artist:</strong><span>{md.artist}</span>
-        <strong>Title:</strong><span>{md.title}</span>
-        <strong>Track No:</strong><span>{md.tracknumber}</span>
-        <strong>Album:</strong><span>{md.album}</span>
-        <strong>Buffering:</strong><span>{buffering}%</span>
+        <span className="playButton" onClick={playOrPause}>
+          {this.state.isPlaying ? '⏸️' : '▶️'}
+        </span>
+        <span>{md.artist} - {md.title}</span>
       </div>
       <div className="volume center">
         <Slider
           value={this.state.volume}
           onChange={this.setVolume}
           max={100}
-          min={0}/>
+          min={0}
+          handleStyle={{borderColor: '#316ac5'}}
+          railStyle={{backgroundColor: 'grey'}}
+          trackStyle={{backgroundColor: '#316ac5'}}
+        />
       </div>
 
 
       <div className="seeker">
         <div className="now center">{this.toTime(now)}</div>
         <div className="rail center">
-          <Slider
-            value={now}
+          <Range
+            count={2}
+            value={[now, buffering]}
             max={total}
-            onChange={this.seek}
-            marks={marks}/>
+            handleStyle={[{borderColor: '#316ac5'}, {display: 'none'}]}
+            railStyle={{backgroundColor: '#316ac5'}}
+            trackStyle={[{backgroundColor: 'grey'}, {}]}
+          />
+
         </div>
         <div className="total center">{this.toTime(total)}</div>
       </div>

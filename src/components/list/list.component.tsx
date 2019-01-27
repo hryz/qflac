@@ -1,8 +1,8 @@
 import * as React from "react";
 import "../../shared/extensions";
 import {PreviewItem} from "../preview/preview.component";
-import Tree, {SelectData, TreeNode} from "rc-tree";
-import {findTree, flatten, ITree} from "./ITree";
+import TreeView, {SelectData, TreeNode} from "rc-tree";
+import {findTree, flatten, Tree} from "./Tree";
 import 'rc-tree/assets/index.css';
 import "./list.css";
 
@@ -17,7 +17,7 @@ interface Node {
 }
 
 interface State {
-  tree: ITree<Node>;
+  tree: Tree<Node>;
 }
 
 export class List extends React.Component<Props, State> {
@@ -45,7 +45,7 @@ export class List extends React.Component<Props, State> {
   };
 
 
-  public mapTree = (t: any, path: string): ITree<Node> => {
+  public mapTree = (t: any, path: string): Tree<Node> => {
     if (typeof t === 'string') {
 
       return {
@@ -66,7 +66,7 @@ export class List extends React.Component<Props, State> {
           path
         },
         childNodes: t[name].map((x: any) => this.mapTree(x, path + '/' + name))
-          .filter((f: ITree<Node>) => this.isUseful(f.node))
+          .filter((f: Tree<Node>) => this.isUseful(f.node))
       }
     }
 
@@ -100,7 +100,7 @@ export class List extends React.Component<Props, State> {
     return [];
   };
 
-  public renderNode = (n: ITree<Node>) => {
+  public renderNode = (n: Tree<Node>) => {
     return (
       <TreeNode
         title={n.node.title}
@@ -122,7 +122,7 @@ export class List extends React.Component<Props, State> {
     };
 
     return (
-      <Tree
+      <TreeView
         className="listView"
         showLine
         checkable={false}
@@ -131,7 +131,7 @@ export class List extends React.Component<Props, State> {
         defaultExpandAll={true}
       >
         {this.renderNode(this.state.tree)}
-      </Tree>
+      </TreeView>
     )
   }
 
